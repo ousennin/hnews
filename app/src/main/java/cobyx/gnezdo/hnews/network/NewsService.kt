@@ -32,6 +32,7 @@ class NewsService : JobIntentService() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val item = repository.getRandomTopNewsItem()
+
                 val views = RemoteViews(packageName, R.layout.news_widget_layout)
                 views.setTextViewText(R.id.title, item.title)
 
