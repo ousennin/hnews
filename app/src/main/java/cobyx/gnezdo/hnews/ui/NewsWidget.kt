@@ -9,6 +9,7 @@ import cobyx.gnezdo.hnews.network.NewsService
 
 class NewsWidget: AppWidgetProvider() {
     private var pendingIntent: PendingIntent? = null
+
     override fun onUpdate(
         context: Context?,
         appWidgetManager: AppWidgetManager?,
@@ -19,5 +20,6 @@ class NewsWidget: AppWidgetProvider() {
         if (pendingIntent == null)
             pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT)
         context?.let { NewsService.enqueueWork(it, intent) }
+//        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(conditionsUrl)))
     }
 }
