@@ -3,22 +3,25 @@ package cobyx.gnezdo.hnews.data.news
 import cobyx.gnezdo.hnews.data.news.dto.toDomain
 import cobyx.gnezdo.hnews.domain.news.NewsRepository
 import cobyx.gnezdo.hnews.domain.news.model.NewsItem
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import io.reactivex.Single
+import kotlin.random.Random
 
 class DefaultNewsRepository(
     private val remoteNewsDataSource: RemoteNewsDataSource,
-    private val localNewsDataSource: LocalNewsDataSource,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) : NewsRepository {
-    override suspend fun getRandomTopNewsItem(): NewsItem = withContext(dispatcher) {
-        if (localNewsDataSource.noLocalNews())
-            remoteNewsDataSource.loadTopNewsIds()
-                .let(localNewsDataSource::saveTopNewsIds)
 
-        val id = localNewsDataSource.getRandomNewsId()
-        remoteNewsDataSource.loadNewsItem(id).toDomain()
+) : NewsRepository {
+    override fun getRandomTopNewsItem(): Single<NewsItem> {
+        return remoteNewsDataSource.loadTopNewsIds()
+            .filter { it.isNotEmpty() }
+            .cache()
+            .flatMapSingle {
+                loadRandomTopNewsItem(it)
+            }
     }
 
+    private fun loadRandomTopNewsItem(list: List<Int>): Single<NewsItem> {
+        return remoteNewsDataSource
+            .loadNewsItem(list[Random.nextInt(list.size)])
+            .map { it.toDomain() }
+    }
 }

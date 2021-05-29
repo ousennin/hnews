@@ -10,10 +10,11 @@ import android.widget.RemoteViews
 import androidx.core.app.JobIntentService
 import cobyx.gnezdo.hnews.R
 import cobyx.gnezdo.hnews.domain.news.NewsRepository
+import cobyx.gnezdo.hnews.domain.news.model.NewsItem
 import cobyx.gnezdo.hnews.ui.NewsWidget
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.observers.DisposableSingleObserver
+import io.reactivex.schedulers.Schedulers
 import org.koin.android.ext.android.inject
 
 class NewsService : JobIntentService() {
@@ -29,29 +30,36 @@ class NewsService : JobIntentService() {
     }
 
     override fun onHandleWork(intent: Intent) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val item = repository.getRandomTopNewsItem()
+        repository.getRandomTopNewsItem()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(Schedulers.io())
+            .subscribe(object : DisposableSingleObserver<NewsItem>() {
+                override fun onSuccess(item: NewsItem) {
+                    val views = RemoteViews(packageName, R.layout.news_widget_layout)
+                    views.setTextViewText(R.id.title, item.title)
 
-                val views = RemoteViews(packageName, R.layout.news_widget_layout)
-                views.setTextViewText(R.id.title, item.title)
+                    setBrowserActionOnClick(views, item.url)
 
-                setBrowserActionOnClick(views, item.url)
-
-                val statsWidget = ComponentName(this@NewsService, NewsWidget::class.java)
-                with(AppWidgetManager.getInstance(this@NewsService)) {
-                    updateAppWidget(statsWidget, views)
+                    val statsWidget = ComponentName(this@NewsService, NewsWidget::class.java)
+                    with(AppWidgetManager.getInstance(this@NewsService)) {
+                        updateAppWidget(statsWidget, views)
+                    }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+
+                override fun onError(e: Throwable) {
+                    e.printStackTrace()
+                }
+
+            })
+
     }
 
     private fun setBrowserActionOnClick(v: RemoteViews, url: String) {
         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        val pIntent = PendingIntent.getActivity(applicationContext, BROWSER_REQUEST_CODE,
-            browserIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pIntent = PendingIntent.getActivity(
+            applicationContext, BROWSER_REQUEST_CODE,
+            browserIntent, PendingIntent.FLAG_UPDATE_CURRENT
+        )
         v.setOnClickPendingIntent(R.id.title, pIntent)
     }
 
