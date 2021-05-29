@@ -10,6 +10,6 @@ interface NewsApi {
 
     @GET("item/{id}.json")
     suspend fun loadNewsItem(
-        @Path(value = "id", encoded = true) id: String
+        @Path(value = "id", encoded = true) id: Int
     ): NewsItemDto
 }

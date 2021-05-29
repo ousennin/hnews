@@ -10,7 +10,7 @@ class RetrofitNewsDataSource(
         return api.loadTopNewsIds()
     }
 
-    override suspend fun loadNewsItem(id: String): NewsItemDto {
+    override suspend fun loadNewsItem(id: Int): NewsItemDto {
         return api.loadNewsItem(id)
     }
 }

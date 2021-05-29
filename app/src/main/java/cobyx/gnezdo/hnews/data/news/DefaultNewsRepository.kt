@@ -8,12 +8,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class DefaultNewsRepository(
-    private val dataSource: RemoteNewsDataSource,
+    private val remoteNewsDataSource: RemoteNewsDataSource,
+    private val localNewsDataSource: LocalNewsDataSource,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : NewsRepository {
     override suspend fun getRandomTopNewsItem(): NewsItem = withContext(dispatcher) {
-        val id = dataSource.loadTopNewsIds().random().toString()
-        dataSource.loadNewsItem(id).toDomain()
+        if (localNewsDataSource.noLocalNews())
+            remoteNewsDataSource.loadTopNewsIds()
+                .let(localNewsDataSource::saveTopNewsIds)
+
+        val id = localNewsDataSource.getRandomNewsId()
+        remoteNewsDataSource.loadNewsItem(id).toDomain()
     }
 
 }

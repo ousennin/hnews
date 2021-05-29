@@ -1,9 +1,7 @@
 package cobyx.gnezdo.hnews.di
 
 import cobyx.gnezdo.hnews.data.api.news.NewsApi
-import cobyx.gnezdo.hnews.data.news.DefaultNewsRepository
-import cobyx.gnezdo.hnews.data.news.RemoteNewsDataSource
-import cobyx.gnezdo.hnews.data.news.RetrofitNewsDataSource
+import cobyx.gnezdo.hnews.data.news.*
 import cobyx.gnezdo.hnews.domain.news.NewsRepository
 import cobyx.gnezdo.hnews.network.HttpClientFactory
 import cobyx.gnezdo.hnews.network.RetrofitManager
@@ -20,6 +18,7 @@ val networkModule = module {
 val newsModule = module {
     single { get<RetrofitManager>().getApi(NewsApi::class.java) }
     single<RemoteNewsDataSource> { RetrofitNewsDataSource(get()) }
-    single<NewsRepository> { DefaultNewsRepository(get()) }
+    single<LocalNewsDataSource> { InMemoryNewsDataSource() }
+    single<NewsRepository> { DefaultNewsRepository(get(), get()) }
 }
 
