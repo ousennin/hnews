@@ -7,7 +7,12 @@ import android.content.Context
 import android.content.Intent
 import cobyx.gnezdo.hnews.network.NewsService
 
-class NewsWidget: AppWidgetProvider() {
+
+class NewsWidget : AppWidgetProvider() {
+    companion object {
+        private const val SERVICE_REQUEST_CODE = 0
+    }
+
     private var pendingIntent: PendingIntent? = null
 
     override fun onUpdate(
@@ -16,10 +21,16 @@ class NewsWidget: AppWidgetProvider() {
         appWidgetIds: IntArray?
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
+
         val intent = Intent(context, NewsService::class.java)
         if (pendingIntent == null)
-            pendingIntent = PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT)
+            pendingIntent = PendingIntent.getService(
+                context,
+                SERVICE_REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_CANCEL_CURRENT
+            )
+
         context?.let { NewsService.enqueueWork(it, intent) }
-//        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(conditionsUrl)))
     }
 }

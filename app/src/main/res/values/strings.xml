@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">hnews</string>
+    <string name="refresh_button">refresh button</string>
 </resources>

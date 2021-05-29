@@ -2,6 +2,6 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:initialLayout="@layout/news_widget_layout"
     android:minWidth="300dp"
-    android:minHeight="40dp"
-    android:resizeMode="none"
-    android:updatePeriodMillis="60000" />
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="3600000"
+    />
