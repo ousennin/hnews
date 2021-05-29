@@ -8,12 +8,19 @@ import kotlin.random.Random
 
 class DefaultNewsRepository(
     private val remoteNewsDataSource: RemoteNewsDataSource,
+    private val localNewsDataSource: LocalNewsDataSource,
 
 ) : NewsRepository {
     override fun getRandomTopNewsItem(): Single<NewsItem> {
+        if (localNewsDataSource.isNotEmpty())
+            return remoteNewsDataSource.loadNewsItem(localNewsDataSource.getRandomNewsId())
+                .map { it.toDomain() }
+
         return remoteNewsDataSource.loadTopNewsIds()
             .filter { it.isNotEmpty() }
-            .cache()
+            .doOnSuccess {
+                it?.let(localNewsDataSource::saveTopNewsIds)
+            }
             .flatMapSingle {
                 loadRandomTopNewsItem(it)
             }

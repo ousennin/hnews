@@ -11,9 +11,17 @@ class InMemoryNewsDataSource: LocalNewsDataSource {
         ids.addAll(list)
     }
 
-    override fun noLocalNews(): Boolean = ids.isEmpty()
+    override fun isEmpty(): Boolean = ids.isEmpty()
 
-    override fun getRandomNewsId(): Int = ids.removeAt(Random.nextInt(ids.size))
+    override fun isNotEmpty(): Boolean = ids.isNotEmpty()
+
+    override fun getRandomNewsId(): Int {
+      if (ids.isNotEmpty()) {
+          return ids.removeAt(Random.nextInt(ids.size))
+      } else {
+          throw NoSuchElementException()
+      }
+    }
 
 
 }

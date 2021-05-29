@@ -19,6 +19,6 @@ val newsModule = module {
     single { get<RetrofitManager>().getApi(NewsApi::class.java) }
     single<RemoteNewsDataSource> { RetrofitNewsDataSource(get()) }
     single<LocalNewsDataSource> { InMemoryNewsDataSource() }
-    single<NewsRepository> { DefaultNewsRepository(get()) }
+    single<NewsRepository> { DefaultNewsRepository(get(), get()) }
 }
 
