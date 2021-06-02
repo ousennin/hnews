@@ -16,6 +16,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.observers.DisposableSingleObserver
 import io.reactivex.schedulers.Schedulers
 import org.koin.android.ext.android.inject
+import java.util.concurrent.TimeUnit
 
 class NewsService : JobIntentService() {
     private val repository: NewsRepository by inject()
@@ -33,6 +34,9 @@ class NewsService : JobIntentService() {
         repository.getRandomTopNewsItem()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeOn(Schedulers.io())
+            .retryWhen { e ->
+                e.delay(15, TimeUnit.SECONDS)
+            }
             .subscribe(object : DisposableSingleObserver<NewsItem>() {
                 override fun onSuccess(item: NewsItem) {
                     val views = RemoteViews(packageName, R.layout.news_widget_layout)
