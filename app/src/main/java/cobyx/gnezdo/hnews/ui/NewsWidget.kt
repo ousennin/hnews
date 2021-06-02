@@ -13,6 +13,7 @@ import cobyx.gnezdo.hnews.network.NewsService
 class NewsWidget : AppWidgetProvider() {
     companion object {
         private const val UPDATE_ACTION = "android.appwidget.action.APPWIDGET_UPDATE"
+        private const val ON_BOOT = "android.intent.action.BOOT_COMPLETED"
     }
 
     override fun onUpdate(
@@ -39,9 +40,13 @@ class NewsWidget : AppWidgetProvider() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         super.onReceive(context, intent)
-        if (intent?.action == UPDATE_ACTION) {
-            val updateIntent = Intent(context, NewsService::class.java)
-            context?.let { NewsService.enqueueWork(it, updateIntent) }
+        if (intent?.action == UPDATE_ACTION || intent?.action == ON_BOOT) {
+            enqueueNewsServiceWork(context)
         }
+    }
+
+    private fun enqueueNewsServiceWork(context: Context?) {
+        val updateIntent = Intent(context, NewsService::class.java)
+        context?.let { NewsService.enqueueWork(it, updateIntent) }
     }
 }
