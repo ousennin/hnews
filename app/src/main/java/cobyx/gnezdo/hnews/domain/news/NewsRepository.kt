@@ -1,7 +1,8 @@
 package cobyx.gnezdo.hnews.domain.news
 
 import cobyx.gnezdo.hnews.domain.news.model.NewsItem
+import kotlinx.coroutines.flow.Flow
 
 interface NewsRepository {
-    suspend fun getRandomTopNewsItem(): NewsItem
+    fun getRandomTopNewsItem(): Flow<NewsItem>
 }

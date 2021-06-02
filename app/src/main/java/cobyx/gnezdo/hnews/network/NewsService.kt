@@ -10,9 +10,13 @@ import android.widget.RemoteViews
 import androidx.core.app.JobIntentService
 import cobyx.gnezdo.hnews.R
 import cobyx.gnezdo.hnews.domain.news.NewsRepository
+import cobyx.gnezdo.hnews.domain.news.model.NewsItem
 import cobyx.gnezdo.hnews.ui.NewsWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
@@ -30,23 +34,27 @@ class NewsService : JobIntentService() {
 
     override fun onHandleWork(intent: Intent) {
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val item = repository.getRandomTopNewsItem()
-
-                val views = RemoteViews(packageName, R.layout.news_widget_layout)
-                views.setTextViewText(R.id.title, item.title)
-
-                setBrowserActionOnClick(views, item.url)
-
-                val statsWidget = ComponentName(this@NewsService, NewsWidget::class.java)
-                with(AppWidgetManager.getInstance(this@NewsService)) {
-                    updateAppWidget(statsWidget, views)
+            repository.getRandomTopNewsItem()
+                .retry {
+                    delay(15000)
+                    true
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+                .collect {  updateWidget(it) }
         }
     }
+
+    private fun updateWidget(item: NewsItem) {
+        val views = RemoteViews(packageName, R.layout.news_widget_layout)
+        views.setTextViewText(R.id.title, item.title)
+
+        setBrowserActionOnClick(views, item.url)
+
+        val statsWidget = ComponentName(this@NewsService, NewsWidget::class.java)
+        with(AppWidgetManager.getInstance(this@NewsService)) {
+            updateAppWidget(statsWidget, views)
+        }
+    }
+
 
     private fun setBrowserActionOnClick(v: RemoteViews, url: String) {
         val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
